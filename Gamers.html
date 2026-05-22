@@ -247,7 +247,7 @@ body::before {
     <label>名字</label>
     <input type="text" id="inputName" placeholder="成员游戏名" style="width:100%;margin-bottom:14px;">
     <label>自定义标签</label>
-    <input type="text" id="inputTag" placeholder="例如：高玩 / 老6 / 整活 / 演员">
+    <input type="text" id="inputTag" placeholder="多个用 / 隔开，如：高玩/老6/整活">
     <div class="btn-row">
       <button class="btn btn-ghost" onclick="closeModal()">取消</button>
       <button class="btn btn-primary" onclick="saveMember()">保存</button>
@@ -370,8 +370,8 @@ function renderMembers(list){
         ${m.woliTitles>0?`<span class="tag rank-tag">🏆 ${m.woliTitles}届窝里横</span>`:''}
       </div>
       <div class="member-meta">
-        ${m.tag?`<span class="tag">${m.tag}</span>`:''}
-      </div>
+  ${m.tag ? m.tag.split(/[\/,，]/).map(t=>t.trim()).filter(Boolean).map(t=>`<span class="tag">${t}</span>`).join('') : ''}
+</div>
       <div class="member-actions">
         <button onclick="editMember(${m.id})">✏️ 编辑</button>
         <button class="del-btn" onclick="deleteMember(${m.id})">🗑️ 删除</button>

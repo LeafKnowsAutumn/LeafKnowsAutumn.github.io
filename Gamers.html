@@ -1,0 +1,477 @@
+<!-- v2.0 - 2026-05-22 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>炮门工会 — 成员管理</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=ZCOOLKuaiLe&display=swap');
+
+:root {
+  --bg: #0b0b14;
+  --surface: #13131f;
+  --card: #1c1c30;
+  --neon: #a855f7;
+  --neon-glow: rgba(168,85,247,0.4);
+  --neon-dim: rgba(168,85,247,0.15);
+  --cyan: #00f0ff;
+  --text: #e0e0ff;
+  --muted: #6a6a8a;
+  --border: #2a2a4a;
+  --green: #22c55e;
+  --red: #ef4444;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'ZCOOLKuaiLe', 'Microsoft YaHei', sans-serif;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(ellipse at 20% 50%, rgba(168,85,247,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 50%, rgba(0,240,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== NAV ===== */
+.nav {
+  position: sticky; top:0; z-index:100;
+  display:flex; align-items:center; gap:6px;
+  padding:12px 24px;
+  background: rgba(11,11,20,0.88);
+  backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo {
+  font-family:'Orbitron',monospace; font-size:18px; font-weight:900;
+  background: linear-gradient(135deg, var(--cyan), var(--neon));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  letter-spacing:2px; margin-right:16px;
+}
+.nav a {
+  color:var(--muted); text-decoration:none; font-size:13px;
+  padding:6px 14px; border-radius:6px; transition:all 0.2s; letter-spacing:1px;
+}
+.nav a:hover, .nav a.active { color:var(--neon); background:var(--neon-dim); }
+
+/* ===== LAYOUT ===== */
+.container { position:relative; z-index:2; max-width:1200px; margin:0 auto; padding:40px 24px 80px; }
+
+/* ===== HEADER ===== */
+.page-header { margin-bottom:36px; }
+.page-title {
+  font-family:'Orbitron',monospace; font-size:clamp(20px,4vw,32px); font-weight:900;
+  color:#fff; letter-spacing:2px; margin-bottom:6px;
+}
+.page-sub { font-size:13px; color:var(--muted); }
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  margin-bottom:28px;
+}
+.search-box {
+  flex:1; min-width:200px;
+  background:var(--card); border:1px solid var(--border); border-radius:8px;
+  padding:10px 14px; color:var(--text); font-size:13px; font-family:inherit;
+  outline:none; transition:border-color 0.2s;
+}
+.search-box:focus { border-color:var(--neon); box-shadow:0 0 12px var(--neon-dim); }
+.search-box::placeholder { color:var(--muted); }
+
+.btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:10px 20px; border-radius:8px; font-size:13px; font-family:inherit;
+  cursor:pointer; border:none; transition:all 0.25s; letter-spacing:1px;
+}
+.btn-primary {
+  background:linear-gradient(135deg, var(--neon), #7c3aed);
+  color:#fff; font-weight:700; box-shadow:0 0 20px var(--neon-dim);
+}
+.btn-primary:hover { box-shadow:0 0 35px var(--neon-glow); transform:translateY(-1px); }
+.btn-ghost {
+  background:transparent; color:var(--cyan); border:1px solid rgba(0,240,255,0.3);
+}
+.btn-ghost:hover { background:rgba(0,240,255,0.08); }
+.btn-danger { background:var(--red); color:#fff; }
+.btn-danger:hover { background:#dc2626; }
+
+/* ===== MEMBER GRID ===== */
+.member-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  gap:16px; margin-bottom:40px;
+}
+.member-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:24px 18px; text-align:center;
+  position:relative; overflow:hidden; transition:all 0.3s;
+}
+.member-card:hover {
+  border-color:var(--neon-dim); transform:translateY(-4px);
+  box-shadow:0 8px 30px rgba(0,0,0,0.4), 0 0 20px var(--neon-dim);
+}
+.member-card .avatar {
+  width:72px; height:72px; border-radius:50%; object-fit:cover;
+  border:2px solid var(--border); margin-bottom:12px; display:block; margin-left:auto; margin-right:auto;
+  transition:border-color 0.3s;
+}
+.member-card:hover .avatar { border-color:var(--neon); }
+.member-name { font-size:15px; font-weight:700; color:#fff; margin-bottom:6px; }
+.member-meta { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.tag {
+  display:inline-block; font-size:10px; padding:2px 10px; border-radius:10px;
+  background:var(--neon-dim); color:var(--neon); border:1px solid rgba(168,85,247,0.25);
+}
+.rank-tag { background:rgba(0,240,255,0.1); color:var(--cyan); border-color:rgba(0,240,255,0.2); }
+.member-actions { display:flex; justify-content:center; gap:8px; margin-top:12px; }
+.member-actions button {
+  background:transparent; border:1px solid var(--border); color:var(--muted);
+  padding:4px 10px; border-radius:6px; font-size:11px; cursor:pointer;
+  font-family:inherit; transition:all 0.2s;
+}
+.member-actions button:hover { border-color:var(--neon); color:var(--neon); }
+.member-actions .del-btn:hover { border-color:var(--red); color:var(--red); }
+
+/* ===== ADD MODAL ===== */
+.modal-mask {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center; z-index:999;
+  opacity:0; pointer-events:none; transition:opacity 0.25s;
+}
+.modal-mask.show { opacity:1; pointer-events:auto; }
+.modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:28px; width:92%; max-width:480px;
+  max-height:85vh; overflow-y:auto;
+  transform:scale(0.95) translateY(10px); transition:transform 0.25s;
+}
+.modal-mask.show .modal { transform:scale(1) translateY(0); }
+.modal h3 { color:var(--neon); font-size:16px; margin-bottom:20px; letter-spacing:1px; }
+.modal label { color:var(--muted); font-size:12px; display:block; margin-bottom:4px; }
+.modal input, .modal select {
+  width:100%; padding:10px 12px; background:var(--card); color:var(--text);
+  border:1px solid var(--border); border-radius:8px; font-size:13px;
+  font-family:inherit; outline:none; transition:border-color 0.2s; margin-bottom:14px;
+}
+.modal input:focus, .modal select:focus { border-color:var(--neon); box-shadow:0 0 10px var(--neon-dim); }
+.modal .row { display:flex; gap:12px; }
+.modal .row > * { flex:1; }
+.modal .btn-row { display:flex; gap:10px; margin-top:18px; }
+.modal .btn-row .btn { flex:1; justify-content:center; }
+.avatar-preview {
+  width:64px; height:64px; border-radius:50%; object-fit:cover;
+  border:2px solid var(--border); display:block; margin:0 auto 14px;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align:center; padding:60px 20px; color:var(--muted); font-size:14px;
+  grid-column:1/-1;
+}
+.empty-state .icon { font-size:48px; margin-bottom:12px; opacity:0.3; }
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align:center; padding:40px 20px; border-top:1px solid var(--border);
+  position:relative; z-index:2;
+}
+.footer-logo {
+  font-family:'Orbitron',monospace; font-size:14px; font-weight:900;
+  letter-spacing:3px;
+  background:linear-gradient(135deg, var(--cyan), var(--neon));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:8px;
+}
+.footer p { font-size:11px; color:var(--muted); letter-spacing:1px; }
+
+/* ===== TOAST ===== */
+.toast {
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:var(--surface); color:var(--text); border:1px solid var(--neon);
+  border-radius:10px; padding:12px 24px; font-size:13px; z-index:9999;
+  opacity:0; transition:all 0.3s; pointer-events:none;
+  box-shadow:0 0 20px var(--neon-dim);
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">PAOMEN</div>
+  <a href="index.html">炮门</a>
+  <a href="Gamers.html" class="active">工会成员</a>
+  <a href="Actor_Online.html">天梯奥斯卡</a>
+  <a href="internal.html">炮门内战</a>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">🤡 炮门成员</div>
+    <div class="page-sub">管理炮门所有成员，添加/编辑/删除成员信息</div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索成员名字..." oninput="filterMembers()">
+    <button class="btn btn-primary" onclick="showAddModal()">＋ 添加成员</button>
+  </div>
+
+  <div class="member-grid" id="memberGrid">
+    <div class="empty-state"><div class="icon">⏳</div>加载中...</div>
+  </div>
+
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-mask" id="modalMask" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h3 id="modalTitle">＋ 添加成员</h3>
+    <input type="hidden" id="editId">
+    <label>头像 URL</label>
+    <img class="avatar-preview" id="avatarPreview" src="https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/paomen.jpg">
+    <input type="text" id="inputAvatar" placeholder="https://..." oninput="updateAvatarPreview()">
+    <label>名字</label>
+    <input type="text" id="inputName" placeholder="成员游戏名" style="width:100%;margin-bottom:14px;">
+    <label>自定义标签</label>
+    <input type="text" id="inputTag" placeholder="例如：高玩 / 老6 / 整活 / 演员">
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveMember()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>Powered by ⚡一叶知秋</p>
+</footer>
+
+<script>
+/* ===== SUPABASE ===== */
+const SUPABASE_URL = 'https://jucftwuhdcimdcsrncok.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp1Y2Z0d3VoZGNpbWRjc3JuY29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MTA5NzEsImV4cCI6MjA5MzA4Njk3MX0.YZXRe4yQL_CT-JkCtEYrnfWCjbxj_uveoQqot-x9QII';
+
+let sb = null;
+let allMembers = [];
+
+async function loadScript(src) {
+  return new Promise((ok,err)=>{
+    if(window.supabase){ok();return;}
+    let s=document.createElement('script'); s.src=src;
+    s.onload=ok; s.onerror=()=>err(new Error(src)); document.head.appendChild(s);
+  });
+}
+async function initSB(){
+  try{
+    await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+    if(!window.supabase) return false;
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ===== DATA ===== */
+async function loadMembers(){
+  let ok = await initSB();
+  if(!ok){ showDemoData(); return; }
+  try{
+    // 1. 加载成员
+    let r = await sb.from('members').select('*').order('id');
+    if(r.error) throw r.error;
+    allMembers = r.data || [];
+
+    // 2. 计算奥斯卡头衔（actor rounds 中每届 RT 最低的选手）
+    let r2 = await sb.from('editions').select('id').eq('type','actor');
+    let actorEdIds = (r2.data||[]).map(e=>e.id);
+    if(actorEdIds.length){
+      let r3 = await sb.from('rounds').select('edition_id,data').in('edition_id', actorEdIds);
+      let oscarCount = {};
+      (r3.data||[]).forEach(row=>{
+        let players = row.data||[];
+        if(!players.length) return;
+        let best = players[0], bestRT = best.rt??999;
+        players.forEach(p=>{
+          let rt = p.rt;
+          if(rt!==null && rt < bestRT){ bestRT=rt; best=p; }
+        });
+        if(best&&best.name) oscarCount[best.name] = (oscarCount[best.name]||0)+1;
+      });
+      allMembers.forEach(m=>{
+        m.oscarTitles = oscarCount[m.name]||0;
+      });
+    }
+
+    // 3. 计算窝里横头衔（internal_rounds 中每届总KD最高的选手）
+    let r4 = await sb.from('editions').select('id').eq('type','internal');
+    let intEdIds = (r4.data||[]).map(e=>e.id);
+    if(intEdIds.length){
+      let r5 = await sb.from('internal_rounds').select('data').in('edition_id', intEdIds);
+      let woliCount = {};
+      (r5.data||[]).forEach(row=>{
+        let d = row.data||{};
+        let allP = [].concat(d.teamA?.players||[], d.teamB?.players||[]);
+        let best = null, bestKD = -1;
+        allP.forEach(p=>{
+          if(!p.name) return;
+          let k = p.k||0, dVal = p.d||0;
+          let kd = dVal>0 ? k/dVal : (k||0);
+          if(kd > bestKD){ bestKD=kd; best=p; }
+        });
+        if(best&&best.name) woliCount[best.name] = (woliCount[best.name]||0)+1;
+      });
+      allMembers.forEach(m=>{
+        m.woliTitles = woliCount[m.name]||0;
+      });
+    }
+
+    renderMembers(allMembers);
+  }catch(e){
+    console.warn('Supabase error, using demo data',e);
+    showDemoData();
+  }
+}
+
+function showDemoData(){
+  allMembers = [
+    {id:1, name:'ZyWOO', avatar:'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/zywoo.jpg', tag:'高玩', rank:'老鹰'},
+    {id:2, name:'Donk', avatar:'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/donk.jpg', tag:'高玩', rank:'老鹰'},
+    {id:3, name:'老登', avatar:'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/laodeng.jpg', tag:'老6', rank:'黄金'},
+    {id:4, name:'医生', avatar:'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/yisheng.jpg', tag:'整活', rank:'老鹰'},
+    {id:5, name:'幽月', avatar:'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/youyue.jpg', tag:'演员', rank:'黄金'},
+  ];
+  renderMembers(allMembers);
+}
+
+function renderMembers(list){
+  let g = document.getElementById('memberGrid');
+  if(!list.length){ g.innerHTML = '<div class="empty-state"><div class="icon">📂</div>暂无成员，点击「添加成员」开始</div>'; return; }
+  g.innerHTML = list.map(m => `
+    <div class="member-card">
+      <img class="avatar" src="${m.avatar||'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/paomen.jpg'}" alt="${m.name}">
+      <div class="member-name">${m.name}</div>
+      <div class="member-titles" style="margin-bottom:8px;font-size:10px;display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">
+        ${m.oscarTitles>0?`<span class="tag" style="background:rgba(255,45,149,0.12);color:#ff2d95;border-color:rgba(255,45,149,0.3);">🎭 ${m.oscarTitles}届奥斯卡影帝大满贯</span>`:''}
+        ${m.woliTitles>0?`<span class="tag rank-tag">🏆 ${m.woliTitles}届窝里横</span>`:''}
+      </div>
+      <div class="member-meta">
+        ${m.tag?`<span class="tag">${m.tag}</span>`:''}
+      </div>
+      <div class="member-actions">
+        <button onclick="editMember(${m.id})">✏️ 编辑</button>
+        <button class="del-btn" onclick="deleteMember(${m.id})">🗑️ 删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterMembers(){
+  let q = document.getElementById('searchBox').value.trim().toLowerCase();
+  let filtered = !q ? allMembers : allMembers.filter(m=>(m.name||'').toLowerCase().includes(q));
+  renderMembers(filtered);
+}
+
+/* ===== MODAL ===== */
+function showAddModal(){
+  document.getElementById('modalTitle').textContent = '＋ 添加成员';
+  document.getElementById('editId').value = '';
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputAvatar').value = '';
+  document.getElementById('inputTag').value = '';
+  document.getElementById('avatarPreview').src = 'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/paomen.jpg';
+  document.getElementById('modalMask').classList.add('show');
+}
+
+function editMember(id){
+  let m = allMembers.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById('modalTitle').textContent = '✏️ 编辑成员';
+  document.getElementById('editId').value = id;
+  document.getElementById('inputName').value = m.name||'';
+  document.getElementById('inputAvatar').value = m.avatar||'';
+  document.getElementById('inputTag').value = m.tag||'';
+  document.getElementById('avatarPreview').src = m.avatar||'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/paomen.jpg';
+  document.getElementById('modalMask').classList.add('show');
+}
+
+function closeModal(){ document.getElementById('modalMask').classList.remove('show'); }
+
+function updateAvatarPreview(){
+  let url = document.getElementById('inputAvatar').value.trim();
+  document.getElementById('avatarPreview').src = url || 'https://raw.githubusercontent.com/LeafKnowsAutumn/paomen-actor/main/images/paomen.jpg';
+}
+
+async function saveMember(){
+  let id = document.getElementById('editId').value;
+  let name = document.getElementById('inputName').value.trim();
+  let avatar = document.getElementById('inputAvatar').value.trim();
+  let tag = document.getElementById('inputTag').value.trim();
+  if(!name){ toast('请输入成员名字'); return; }
+
+  if(!sb){ toast('Supabase 未连接，请在恢复后重试'); closeModal(); return; }
+
+  try{
+    if(id){
+      let r = await sb.from('members').update({name,avatar,tag}).eq('id',id).select();
+      if(r.error) throw r.error;
+      let idx = allMembers.findIndex(x=>x.id==id);
+      if(idx>=0) allMembers[idx] = r.data[0];
+      toast('✅ 成员已更新');
+    }else{
+      let r = await sb.from('members').insert([{name,avatar,tag}]).select();
+      if(r.error) throw r.error;
+      allMembers.push(r.data[0]);
+      toast('✅ 成员已添加');
+    }
+    closeModal();
+    renderMembers(allMembers);
+    filterMembers();
+  }catch(e){
+    toast('❌ 保存失败：'+e.message);
+  }
+}
+
+async function deleteMember(id){
+  let m = allMembers.find(x=>x.id===id);
+  if(!m) return;
+  if(!confirm(`确认删除成员「${m.name}」？`)) return;
+  if(!sb){ toast('Supabase 未连接'); return; }
+  try{
+    let r = await sb.from('members').delete().eq('id',id);
+    if(r.error) throw r.error;
+    allMembers = allMembers.filter(x=>x.id!==id);
+    renderMembers(allMembers);
+    filterMembers();
+    toast('🗑️ 已删除 '+m.name);
+  }catch(e){
+    toast('❌ 删除失败：'+e.message);
+  }
+}
+
+function toast(msg){
+  let t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+/* ===== INIT ===== */
+loadMembers();
+</script>
+</body>
+</html>
